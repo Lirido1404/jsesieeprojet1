@@ -1,3 +1,47 @@
+
+let i1 = document.getElementById('ville');
+let nomVille = "";
+i1.addEventListener('input',(e)=>{
+    nomVille = e.target.value;
+    console.log(nomVille);
+})
+
+let b1 = document.getElementById("buttonsubmit");
+
+
+
+const tryFetchCommunes = async () => {
+    try {
+        const res = await fetch("codecommunes.csv");
+        
+        
+        if (!res.ok) {
+            throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+        
+        const csvDataCommunes = await res.text(); 
+
+        return Papa.parse(csvDataCommunes, {
+            header: true, 
+            skipEmptyLines: true 
+        }).data;
+    } catch (err) {
+        console.error("Erreur lors du chargement des données CSV :", err);
+        return null; 
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
 const tryfetchfichier = async () => {
     try {
         const res = await fetch("crimedata.csv");
@@ -26,38 +70,51 @@ const tryfetchfichier = async () => {
 
 
 
+const handleClick = async () => {
+    let filteredjsonCodesCommunesData;
+    const jsonCodesCommunesData = await tryFetchCommunes();
+    if (jsonCodesCommunesData && nomVille) {
+        filteredjsonCodesCommunesData = jsonCodesCommunesData.filter((el) => {
+            return el.nom_commune_postal === nomVille.toUpperCase();
+        });
+    }
+    return filteredjsonCodesCommunesData[0]; 
+};
 
 
 
 
-// Exemple d'utilisation
 (async () => {
-    const jsonData = await tryfetchfichier();
+    let jsonCrimeData;
+    let filteredjsonCodesCommunesData;
+    let codeVille;
 
-    if(jsonData){
-        if(jsonData[0].CODGEO_2024 === 1001){
+    b1.addEventListener('click',async ()=>{
+        filteredjsonCodesCommunesData =  await handleClick();
+        console.log(filteredjsonCodesCommunesData);
+        if(filteredjsonCodesCommunesData){
+            codeVille = parseInt(filteredjsonCodesCommunesData.code_commune_INSEE);
+            console.log("Code Ville : ", codeVille)
+        } 
+    })
+    
+    
+
+
+    if(filteredjsonCodesCommunesData){
+        jsonCrimeData = await tryfetchfichier();
+        console.log("Code Ville 2 : ",codeVille)
+    }
+    
+
+    if(jsonCrimeData){
+        if(jsonCrimeData[0].CODGEO_2024 === 1001){
             console.log("même type")
         }else{
-            let int = parseInt(jsonData[0].CODGEO_2024);
+            let int = parseInt(jsonCrimeData[0].CODGEO_2024);
             if(int === 1001){
                 console.log("même type2")
             }
         }
     }
-    // if (jsonData) {
-    //     const filteredData = jsonData.filter((el) => {
-    //         return parseInt(el.CODGEO_2024, 10) === 1002;
-    //     });
-        
-    //     console.log(filteredData);
-
-    //     const numberOfObjectsWithCodeGeo1002 = filteredData.length;
-    //     console.log(`Nombre d'objets avec CODGEO_2024 = 1002 : ${numberOfObjectsWithCodeGeo1002}`);
-        
-    //     if (filteredData.length > 0) {
-    //         console.log("Premier objet trouvé :", filteredData[0]);
-    //     } else {
-    //         console.log("Aucun objet avec CODGEO_2024 = 1002 trouvé.");
-    //     }
-    // }
 })();
