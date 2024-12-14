@@ -1,5 +1,6 @@
 let i1 = document.getElementById('ville');
 let nomVille = "";
+let uniqueFilteredVille;
 
 i1.addEventListener('input', async (e) => {
     nomVille = e.target.value;
@@ -8,10 +9,31 @@ i1.addEventListener('input', async (e) => {
         el.nom_commune_postal.includes(nomVille.toUpperCase())
     );
 
-    // Suppression des doublons par le nom de la commune
-    let uniqueFilteredVille = filteredVilles.filter((value, index, self) =>
+    uniqueFilteredVille = filteredVilles.filter((value, index, self) =>
         index === self.findIndex((t) => t.nom_commune_postal === value.nom_commune_postal)
     );
+
+    let resultsContainer = document.getElementById('results-container');
+    resultsContainer.innerHTML = '';
+    
+    if( uniqueFilteredVille && uniqueFilteredVille.length > 0){
+        uniqueFilteredVille.forEach(city => {
+            
+            let cityDiv = document.createElement('div');
+                cityDiv.classList.add('city'); 
+                
+                cityDiv.innerHTML = `
+                    <p class="test">${city.nom_commune_postal}</p>
+                `;
+                
+                cityDiv.addEventListener('click', () => {
+                    i1.value = city.nom_commune_postal
+                    nomVille = city.nom_commune_postal;
+                });
+                
+                resultsContainer.appendChild(cityDiv);
+        });
+    }
 
     console.log(uniqueFilteredVille);
 });
